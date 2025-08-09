@@ -1,4 +1,35 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@reference "tailwindcss";
 
+/* Estilos personalizados */
+@layer components {
+
+  .card {
+    @apply bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 p-6;
+  }
+  
+  .feature-icon {
+    @apply bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4;
+  }
+}
+
+/* Estilos base */
+@layer base {
+  body {
+    @apply bg-gray-50 text-gray-900;
+  }
+  
+  h1 {
+    @apply text-4xl font-bold;
+  }
+  
+  h2 {
+    @apply text-3xl font-bold;
+  }
+  
+  h3 {
+    @apply text-2xl font-bold;
+  }
+}
