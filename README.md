@@ -79,7 +79,61 @@ npm run dev -- --profile
 # 4. Suite de pruebas completa
 npm test -- --coverage --watchAll=false
 
+```
+## Frontend (Configuración Avanzada)
+cd ../frontend
+
+# 1. Instalar dependencias optimizadas
+npm ci --production
+
+# 2. Variables de entorno
+cp .env.example .env.local
+# Configurar:
+# VITE_API_BASE_URL=https://api.tudominio.com
+# VITE_SENTRY_DSN=tu-dsn-de-sentry
+
+# 3. Ejecución con análisis de bundle
+npm run dev -- --profile
+
+# 4. Suite de pruebas completa
+npm test -- --coverage --watchAll=false
+
+
 ## 🗃️ Arquitectura del Sistema
+gympower/
+├── backend/
+│   ├── alembic/               # Migraciones de base de datos
+│   ├── app/
+│   │   ├── api/               # Endpoints organizados por versión
+│   │   ├── core/              # Configuración centralizada
+│   │   ├── db/                # Acceso a base de datos
+│   │   ├── models/            # Modelos SQLAlchemy
+│   │   ├── schemas/           # Validación Pydantic
+│   │   ├── services/          # Lógica de negocio
+│   │   ├── tasks/             # Tareas asíncronas con Celery
+│   │   ├── utils/             # Utilidades comunes
+│   │   └── main.py            # Punto de entrada
+│   ├── tests/                 # Pruebas unitarias e integración
+│   └── requirements/          # Dependencias separadas por entorno
+├── frontend/
+│   ├── public/                # Assets estáticos
+│   ├── src/
+│   │   ├── api/               # Clientes API
+│   │   ├── assets/            # Imágenes, fuentes
+│   │   ├── components/        # Componentes UI reutilizables
+│   │   ├── contexts/          # Gestión de estado global
+│   │   ├── hooks/             # Custom hooks
+│   │   ├── layouts/           # Estructuras de página
+│   │   ├── pages/             # Vistas/rutas
+│   │   ├── stores/            # Gestión de estado (Zustand)
+│   │   ├── styles/            # Estilos globales
+│   │   ├── utils/             # Funciones auxiliares
+│   │   └── main.jsx           # Punto de entrada
+│   ├── cypress/               # Pruebas E2E
+│   └── jest/                  # Configuración de pruebas
+├── docker/                    # Configuraciones Docker
+├── docs/                      # Documentación técnica
+└── scripts/                   # Scripts de automatización
 
 
 
