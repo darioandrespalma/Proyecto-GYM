@@ -83,19 +83,19 @@ npm test -- --coverage --watchAll=false
 ## Frontend (Configuración Avanzada)
 cd ../frontend
 
-# 1. Instalar dependencias optimizadas
+### 1. Instalar dependencias optimizadas
 npm ci --production
 
-# 2. Variables de entorno
+### 2. Variables de entorno
 cp .env.example .env.local
-# Configurar:
-# VITE_API_BASE_URL=https://api.tudominio.com
-# VITE_SENTRY_DSN=tu-dsn-de-sentry
+### Configurar:
+### VITE_API_BASE_URL=https://api.tudominio.com
+### VITE_SENTRY_DSN=tu-dsn-de-sentry
 
-# 3. Ejecución con análisis de bundle
+### 3. Ejecución con análisis de bundle
 npm run dev -- --profile
 
-# 4. Suite de pruebas completa
+### 4. Suite de pruebas completa
 npm test -- --coverage --watchAll=false
 
 
