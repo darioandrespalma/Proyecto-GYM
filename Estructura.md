@@ -79,84 +79,138 @@ El administrador tiene control total sobre la plataforma. Su portal es el centro
 -----
 
 ## 🗂️ Nueva Arquitectura de Carpetas (Explicada)
+¡Excelente\! Aquí tienes la estructura completa de archivos para cada carpeta del proyecto **GymPower**.
 
-Esta es una versión refinada y más organizada de la estructura que propusiste, siguiendo las mejores prácticas.
+Esta es la lista detallada de los archivos que necesitarías crear para que todo el sistema funcione, siguiendo la arquitectura que definimos. No se incluye el código, solo la estructura y el propósito de cada archivo.
 
-### ⚙️ **Backend (FastAPI)**
+-----
+
+## ⚙️ **Backend (FastAPI)**
+
+Esta estructura organiza la lógica de negocio, el acceso a datos y la API de una manera limpia y escalable.
 
 ```
 gympower/
 └── backend/
-    ├── alembic/              # Migraciones de base de datos (SQLAlchemy)
+    ├── alembic/                      # Directorio de Alembic para migraciones de BD
+    │   ├── versions/                 # Archivos de migración generados
+    │   └── env.py                    # Script de configuración de Alembic
     ├── app/
     │   ├── api/
-    │   │   └── v1/           # Versión 1 de la API, permite futuras versiones sin romper la app
-    │   │       ├── endpoints/  # Define las rutas/endpoints de la API
-    │   │       │   ├── auth.py
-    │   │       │   ├── members.py
-    │   │       │   ├── trainers.py
-    │   │       │   ├── classes.py
-    │   │       │   └── payments.py
-    │   │       └── deps.py   # Manejo de dependencias (ej: obtener usuario actual)
-    │   ├── core/             # Configuración central del proyecto
-    │   │   ├── config.py   # Carga de variables de entorno (claves secretas, URL de BD)
-    │   │   └── security.py # Lógica de hashing de contraseñas y JWT
-    │   ├── db/               # Configuración y sesión de la base de datos
-    │   │   ├── base.py     # Modelo base para las tablas de SQLAlchemy
-    │   │   └── session.py  # Creación de la sesión de la base de datos
-    │   ├── models/           # Define la estructura de las tablas de la base de datos
-    │   │   ├── user.py
-    │   │   ├── membership.py
-    │   │   ├── payment.py
-    │   │   └── class.py
-    │   ├── schemas/          # Define la forma de los datos de entrada y salida (Pydantic)
-    │   │   ├── token.py
-    │   │   ├── user.py     # Schemas para creación, actualización y vista de usuarios
-    │   │   └── msg.py      # Schemas para mensajes de respuesta (ej: {"msg": "Éxito"})
-    │   ├── services/         # Contiene la lógica de negocio principal
-    │   │   ├── user_service.py # Lógica para crear, obtener, actualizar usuarios
-    │   │   └── payment_service.py # Lógica para procesar y verificar pagos
-    │   └── main.py           # Punto de entrada de la aplicación FastAPI
-    ├── tests/                # Pruebas unitarias y de integración
-    └── requirements.txt      # Dependencias de Python
+    │   │   └── v1/
+    │   │       ├── endpoints/
+    │   │       │   ├── auth.py         # Rutas para login, registro y tokens JWT
+    │   │       │   ├── members.py      # Rutas CRUD para miembros (visto por admin)
+    │   │       │   ├── users.py        # Rutas para gestión de perfiles de usuario
+    │   │       │   ├── trainers.py     # Rutas CRUD para entrenadores
+    │   │       │   ├── classes.py      # Rutas CRUD para clases y reservas
+    │   │       │   └── payments.py     # Rutas para procesar y verificar pagos
+    │   │       └── deps.py             # Dependencias inyectables (ej: get_current_user)
+    │   ├── core/
+    │   │   ├── config.py             # Carga variables de entorno (.env)
+    │   │   └── security.py           # Funciones para contraseñas y tokens JWT
+    │   ├── db/
+    │   │   ├── base.py               # Contiene la clase Base para los modelos SQLAlchemy
+    │   │   └── session.py            # Gestiona la creación de sesiones de la BD
+    │   ├── models/                   # Modelos de datos (tablas de la base de datos)
+    │   │   ├── user.py               # Modelo User (contiene datos de login, roles)
+    │   │   ├── membership.py         # Modelo Membership (tipos, precios, duración)
+    │   │   ├── payment.py            # Modelo Payment (registra cada transacción)
+    │   │   ├── class_schedule.py     # Modelo para las clases programadas
+    │   │   └── class_booking.py      # Modelo para las reservas de los usuarios en clases
+    │   ├── schemas/                  # Esquemas Pydantic para validación de datos
+    │   │   ├── token.py              # Esquema para la respuesta del token JWT
+    │   │   ├── user.py               # Esquemas: UserCreate, UserUpdate, UserInDB
+    │   │   ├── membership.py         # Esquemas para membresías
+    │   │   ├── payment.py            # Esquemas: PaymentCreate, PaymentUpdate
+    │   │   └── class_schedule.py     # Esquemas para creación y vista de clases
+    │   ├── services/                 # Lógica de negocio desacoplada de las rutas
+    │   │   ├── user_service.py       # Lógica para manejar usuarios y roles
+    │   │   ├── payment_service.py    # Lógica para validar pagos y activar membresías
+    │   │   └── class_service.py      # Lógica para gestionar reservas y capacidad
+    │   ├── __init__.py
+    │   └── main.py                   # Archivo principal que crea la app FastAPI
+    ├── tests/                        # Pruebas automatizadas
+    │   ├── test_auth_api.py
+    │   └── test_payments_api.py
+    ├── .env                          # Variables de entorno (NO subir a git)
+    ├── .gitignore
+    ├── alembic.ini                   # Configuración principal de Alembic
+    └── requirements.txt              # Dependencias de Python
 ```
 
-### 💻 **Frontend (React)**
+-----
+
+## 💻 **Frontend (React)**
+
+Esta estructura está orientada a componentes y roles, lo que facilita encontrar y modificar partes específicas de la interfaz de usuario.
 
 ```
 gympower/
 └── frontend/
-    ├── public/               # Archivos estáticos (íconos, manifest.json)
+    ├── public/
+    │   ├              
+    │   └── favicon.ico               # Ícono de la aplicación
     ├── src/
-    │   ├── api/              # Funciones para comunicarse con el Backend (ej: usando Axios)
-    │   │   └── axiosClient.js # Instancia de Axios pre-configurada
-    │   ├── assets/           # Imágenes, logos, fuentes
-    │   ├── components/       # Componentes de UI reutilizables
-    │   │   ├── common/       # Componentes genéricos (Button, Input, Card, Modal)
-    │   │   └── layout/       # Componentes de estructura (Navbar, Sidebar, Footer)
-    │   ├── hooks/            # Custom hooks de React (ej: useAuth, useApi)
-    │   ├── pages/            # Componentes que representan una página/ruta completa
-    │   │   ├── admin/        # Páginas exclusivas para el rol de Administrador
-    │   │   │   ├── DashboardPage.jsx
-    │   │   │   └── MembersPage.jsx
-    │   │   ├── member/       # Páginas para el Cliente
+    │   ├── api/                      # Funciones para llamar al backend
+    │   │   ├── apiClient.js          # Configuración de Axios (URL base, interceptores)
+    │   │   ├── authApi.js            # Llamadas a /api/v1/auth
+    │   │   ├── membersApi.js         # Llamadas a /api/v1/members
+    │   │   ├── classesApi.js         # Llamadas a /api/v1/classes
+    │   │   └── paymentsApi.js        # Llamadas a /api/v1/payments
+    │   ├── assets/
+    │   │   ├── images/               # Logos, imágenes de fondo
+    │   │   └── styles/               # Archivos CSS/SCSS globales
+    │   │       └── main.scss
+    │   ├── components/
+    │   │   ├── common/               # Componentes genéricos y reutilizables
+    │   │   │   ├── Button.jsx
+    │   │   │   ├── Input.jsx
+    │   │   │   ├── Card.jsx
+    │   │   │   ├── Modal.jsx
+    │   │   │   ├── Spinner.jsx
+    │   │   │   ├── Table.jsx
+    │   │   │   └── StatusBadge.jsx   # Para "Pending", "Completed", "Active"
+    │   │   └── layout/               # Componentes de estructura de la página
+    │   │       ├── Navbar.jsx
+    │   │       ├── Sidebar.jsx
+    │   │       ├── AdminLayout.jsx   # Layout para el panel de admin
+    │   │       └── MemberLayout.jsx  # Layout para el portal de miembros
+    │   ├── hooks/
+    │   │   ├── useAuth.js            # Hook para acceder a la información del usuario
+    │   │   └── useApi.js             # Hook genérico para manejar estados de carga/error
+    │   ├── pages/
+    │   │   ├── admin/                # Páginas del Administrador
+    │   │   │   ├── AdminDashboardPage.jsx
+    │   │   │   ├── MembersListPage.jsx
+    │   │   │   ├── PaymentsListPage.jsx
+    │   │   │   ├── ClassesManagePage.jsx
+    │   │   │   └── TrainersManagePage.jsx
+    │   │   ├── member/               # Páginas del Cliente/Miembro
     │   │   │   ├── MemberDashboardPage.jsx
-    │   │   │   └── ClassesPage.jsx
-    │   │   ├── trainer/      # Páginas para el Entrenador
-    │   │   └── public/       # Páginas públicas
-    │   │       ├── LoginPage.jsx
-    │   │       └── HomePage.jsx
-    │   ├── router/           # Configuración de las rutas de la aplicación
-    │   │   └── index.jsx     # Define qué componente se muestra para cada URL
-    │   ├── services/         # Lógica de frontend (ej: manejo de tokens de autenticación)
-    │   │   └── authService.js
-    │   ├── store/            # Gestión de estado global (Zustand, Redux, etc.)
-    │   │   ├── authStore.js  # Estado relacionado con la autenticación del usuario
-    │   │   └── uiStore.js    # Estado de la UI (ej: si un modal está abierto)
-    │   ├── styles/           # Archivos de estilos (CSS, SCSS)
-    │   ├── utils/            # Funciones de utilidad (formateo de fechas, validaciones)
-    │   └── App.jsx           # Componente raíz de la aplicación
-    └── package.json          # Dependencias y scripts de Node.js
+    │   │   │   ├── SchedulePage.jsx
+    │   │   │   ├── RenewMembershipPage.jsx
+    │   │   │   └── ProfilePage.jsx
+    │   │   ├── trainer/              # Páginas del Entrenador
+    │   │   │   ├── TrainerDashboardPage.jsx
+    │   │   │   └── ClassAttendancePage.jsx
+    │   │   ├── public/               # Páginas accesibles sin login
+    │   │   │   ├── LoginPage.jsx
+    │   │   │   ├── RegisterPage.jsx
+    │   │   │   └── NotFoundPage.jsx
+    │   ├── router/
+    │   │   ├── AppRouter.jsx         # Define todas las rutas de la aplicación
+    │   │   └── ProtectedRoute.jsx    # Componente para proteger rutas según el rol
+    │   ├── store/                    # Gestión de estado global (Zustand)
+    │   │   └── useAuthStore.js       # Almacena el token y la información del usuario
+    │   ├── utils/
+    │   │   ├── dateFormatter.js      # Funciones para formatear fechas y horas
+    │   │   └── constants.js          # Constantes como roles de usuario, etc.
+    │   ├── App.jsx                   # Componente principal que renderiza el router
+    │   └── main.jsx                  # Punto de entrada de la aplicación React
+    ├── .env.local                    # Variables de entorno del frontend (VITE_API_BASE_URL)
+    ├── .gitignore
+    ├── index.html                    
+    ├── package.json
+    └── vite.config.js                # Archivo de configuración de Vite
 ```
-
-Con esta estructura, el proyecto será mucho más fácil de desarrollar, probar y mantener a largo plazo.
