@@ -18,8 +18,11 @@ def login_for_access_token(db: Session = Depends(get_db), form_data: OAuth2Passw
             headers={"WWW-Authenticate": "Bearer"},
         )
     
-    # El "subject" del token será el email, y también incluimos el rol
+    # --- LA CORRECCIÓN ESTÁ AQUÍ ---
+    # Convertimos user.role a su valor de texto con .value
     access_token = security.create_access_token(
-        data={"sub": user.email, "role": user.role, "fullName": user.full_name}
+        data={"sub": user.email, "role": user.role.value, "fullName": user.full_name}
     )
+    # -----------------------------
+
     return {"access_token": access_token, "token_type": "bearer"}
