@@ -214,3 +214,54 @@ gympower/
     ├── package.json
     └── vite.config.js                # Archivo de configuración de Vite
 ```
+
+---
+
+# Como ejecutar el proyecto
+
+## 🚀 Cómo Ejecutar el Proyecto
+Sigue estos pasos para poner todo en marcha.
+
+### Backend
+1. Navega a la carpeta: ```cd gympower/backend```
+
+2. Crea un entorno virtual: ```python -m venv venv```
+
+3. Activa el entorno: ```venv\Scripts\activate```
+
+4. Instala las dependencias: ```pip install -r requirements.txt```
+
+5. Configura la Base de Datos: Asegúrate de que PostgreSQL está corriendo y de que has creado una base de datos llamada ```gympower```.
+
+6. Ejecuta el servidor: ```uvicorn app.main:app --reload```
+
+El backend estará corriendo en ``http://127.0.0.1:8000``.
+
+
+### Frontend
+1. Abre una nueva terminal.
+
+2. Navega a la carpeta: ```cd gympower/frontend```
+
+3. Instala las dependencias: ```npm install```
+
+4. Ejecuta la aplicación: ```npm run dev```
+
+El frontend estará disponible en ``http://localhost:5173``.
+
+Ahora, abre tu navegador, ve a ``http://localhost:5173`` y deberías ver la pantalla de login. Usa las credenciales que crees en tu base de datos (puedes crear un usuario admin manualmente o con un script "seed") para acceder al panel.
+
+
+
+---
+venv\Scripts\activate
+
+uvicorn app.main:app --reload
+
+
+
+
+
+
+
+
