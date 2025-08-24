@@ -7,7 +7,8 @@ from app.db import session, base
 # Importa TODOS tus modelos aquí para que SQLAlchemy los "descubra" al iniciar
 from app.models import user, payment, membership, class_schedule, class_booking
 
-from app.api.v1.endpoints import auth, members, trainers, classes # Agregamos 'classes'
+# Importa TODOS tus archivos de endpoints
+from app.api.v1.endpoints import auth, members, trainers, classes, trainer_endpoints
 
 # -----------------------------------------
 
@@ -25,12 +26,21 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Incluir todos los routers de la API
+# --- INCLUIR TODOS LOS ROUTERS ---
+
+# Rutas de Autenticación (Públicas)
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["Auth"])
+
+# Rutas de Administrador (Protegidas para Admins)
 app.include_router(members.router, prefix="/api/v1/admin/members", tags=["Admin"])
 app.include_router(trainers.router, prefix="/api/v1/admin/trainers", tags=["Admin"])
 app.include_router(classes.router, prefix="/api/v1/admin/classes", tags=["Admin"])
 # Nota: Aquí también deberías incluir el router de 'payments' cuando lo crees.
+
+# Rutas de Entrenador (Protegidas para Entrenadores)
+app.include_router(trainer_endpoints.router, prefix="/api/v1/trainer", tags=["Trainer"])
+
+# ------------------------------------
 
 @app.get("/")
 def root():

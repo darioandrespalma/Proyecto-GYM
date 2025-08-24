@@ -22,8 +22,9 @@ const Table = ({ columns, data }) => {
             <tr key={rowIndex} className="border-b border-gray-200 hover:bg-gray-100">
               {columns.map((col) => (
                 <td key={col.accessor} className="py-3 px-4">
-                  {/* Si se proporciona una función Cell, úsala, si no, muestra el dato directamente */}
-                  {col.Cell ? col.Cell({ value: row[col.accessor] }) : row[col.accessor]}
+                  {/* --- CAMBIO CLAVE AQUÍ --- */}
+                  {/* Ahora pasamos el objeto 'row' completo, no solo el 'value' */}
+                  {col.Cell ? col.Cell({ row }) : row[col.accessor]}
                 </td>
               ))}
             </tr>

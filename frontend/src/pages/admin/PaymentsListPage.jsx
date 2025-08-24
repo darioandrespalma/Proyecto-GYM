@@ -8,7 +8,6 @@ const PaymentsListPage = () => {
     const [payments, setPayments] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    // Simula la carga de datos de la API
     useEffect(() => {
         const mockData = [
             { id: 1, user_name: 'Juan Pérez', amount: 49.99, status: 'completed', method: 'Credit Card', date: '2025-08-20' },
@@ -19,32 +18,31 @@ const PaymentsListPage = () => {
         setTimeout(() => {
             setPayments(mockData);
             setLoading(false);
-        }, 1000); // Simula un retraso de red
+        }, 1000);
     }, []);
 
-    // Función para manejar la aprobación de un pago
     const handleApprovePayment = (paymentId) => {
         setPayments(prevPayments =>
             prevPayments.map(p =>
                 p.id === paymentId ? { ...p, status: 'completed' } : p
             )
         );
-        // Aquí iría la llamada a la API para actualizar el estado en el backend
     };
     
-    // Definición de las columnas para la tabla reutilizable
     const columns = [
         { Header: 'Usuario', accessor: 'user_name' },
-        { Header: 'Monto', accessor: 'amount', Cell: ({ value }) => `$${value.toFixed(2)}` },
+        { Header: 'Monto', accessor: 'amount', Cell: ({ row }) => `$${row.original?.amount.toFixed(2) ?? row.amount.toFixed(2)}` },
         { Header: 'Método', accessor: 'method' },
         { Header: 'Fecha', accessor: 'date' },
-        { Header: 'Estado', accessor: 'status', Cell: ({ value }) => <StatusBadge status={value} /> },
+        { Header: 'Estado', accessor: 'status', Cell: ({ row }) => <StatusBadge status={row.original?.status ?? row.status} /> },
         {
             Header: 'Acciones',
             accessor: 'id',
-            Cell: ({ value, row: { original } }) => (
-                original.status === 'pending' ? (
-                    <Button color="primary" onClick={() => handleApprovePayment(value)}>
+            // --- CAMBIO CLAVE AQUÍ ---
+            // Ahora recibimos 'row' y podemos acceder a cualquier propiedad de la fila
+            Cell: ({ row }) => (
+                (row.original?.status ?? row.status) === 'pending' ? (
+                    <Button color="primary" onClick={() => handleApprovePayment(row.original?.id ?? row.id)}>
                         Aprobar
                     </Button>
                 ) : null
@@ -56,9 +54,7 @@ const PaymentsListPage = () => {
         <div>
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-3xl font-bold text-gray-800">Gestión de Pagos</h1>
-                {/* Un botón para agregar pagos manualmente si es necesario */}
             </div>
-
             <div className="bg-white p-6 rounded-lg shadow-md">
                 {loading ? <Spinner /> : <Table columns={columns} data={payments} />}
             </div>

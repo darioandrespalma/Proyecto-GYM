@@ -4,44 +4,75 @@ import Button from '../../components/common/Button';
 import Modal from '../../components/common/Modal';
 import Input from '../../components/common/Input';
 import Spinner from '../../components/common/Spinner';
+// --- CAMBIO 1: Importar las funciones de la API ---
+import { getTrainers, createTrainer } from '../../api/trainersApi';
 
 const TrainersManagePage = () => {
     const [trainers, setTrainers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    // Estado para manejar los datos del formulario del nuevo entrenador
+    const [newTrainer, setNewTrainer] = useState({
+        full_name: '',
+        email: '',
+        password: '',
+        role: 'trainer' // El rol se envía directamente
+    });
 
-    // Simula la carga de datos
+    // --- CAMBIO 2: Usar useEffect para llamar a la API al cargar la página ---
     useEffect(() => {
-        const mockData = [
-            { id: 1, full_name: 'Ana Fuentes', email: 'ana.f@gym.com', specialty: 'Yoga, Pilates', experience: 5 },
-            { id: 2, full_name: 'Carlos Roca', email: 'carlos.r@gym.com', specialty: 'HIIT, CrossFit', experience: 8 },
-            { id: 3, full_name: 'Sofia Solis', email: 'sofia.s@gym.com', specialty: 'Spinning, Cardio', experience: 3 },
-        ];
-        setTimeout(() => { setTrainers(mockData); setLoading(false); }, 500);
-    }, []);
+        const fetchTrainers = async () => {
+            try {
+                // Ya no usamos mockData, llamamos a la API real
+                const data = await getTrainers();
+                setTrainers(data);
+            } catch (error) {
+                console.error("Error al obtener los entrenadores:", error);
+                // Aquí podrías mostrar un mensaje de error al usuario
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchTrainers();
+    }, []); // El array vacío asegura que se ejecute solo una vez
 
     const handleOpenModal = () => setIsModalOpen(true);
-    const handleCloseModal = () => setIsModalOpen(false);
+    const handleCloseModal = () => {
+        setIsModalOpen(false);
+        // Limpiar el formulario al cerrar
+        setNewTrainer({ full_name: '', email: '', password: '', role: 'trainer' });
+    };
 
-    const handleSaveTrainer = (e) => {
+    const handleInputChange = (e) => {
+        setNewTrainer({ ...newTrainer, [e.target.id]: e.target.value });
+    };
+
+    // --- CAMBIO 3: Función para guardar el nuevo entrenador llamando a la API ---
+    const handleSaveTrainer = async (e) => {
         e.preventDefault();
-        // Lógica para guardar el nuevo entrenador (llamada a la API)
-        console.log("Guardando entrenador...");
-        handleCloseModal();
+        try {
+            const createdTrainer = await createTrainer(newTrainer);
+            // Añadir el nuevo entrenador a la lista sin tener que recargar la página
+            setTrainers([...trainers, createdTrainer]);
+            handleCloseModal();
+        } catch (error) {
+            console.error("Error al crear el entrenador:", error);
+            // Aquí podrías mostrar un error en el modal
+        }
     };
 
     const columns = [
         { Header: 'Nombre Completo', accessor: 'full_name' },
         { Header: 'Email', accessor: 'email' },
-        { Header: 'Especialidad', accessor: 'specialty' },
-        { Header: 'Años Exp.', accessor: 'experience' },
+        // Puedes añadir más columnas si las tienes en tu modelo, como 'specialty'
         {
             Header: 'Acciones',
             accessor: 'id',
-            Cell: ({ value }) => (
+            Cell: ({ row }) => (
                 <div className="flex space-x-2">
-                    <Button color="secondary" onClick={() => alert(`Editando entrenador ${value}`)}>Editar</Button>
-                    <Button color="danger" onClick={() => alert(`Eliminando entrenador ${value}`)}>Eliminar</Button>
+                    <Button color="secondary">Editar</Button>
+                    <Button color="danger">Eliminar</Button>
                 </div>
             ),
         },
@@ -62,11 +93,9 @@ const TrainersManagePage = () => {
 
             <Modal isOpen={isModalOpen} onClose={handleCloseModal} title="Agregar Nuevo Entrenador">
                 <form onSubmit={handleSaveTrainer} className="space-y-4">
-                    <Input id="fullName" label="Nombre Completo" required />
-                    <Input id="email" label="Email" type="email" required />
-                    <Input id="specialty" label="Especialidad" placeholder="Ej: CrossFit, Yoga" required />
-                    <Input id="experience" label="Años de Experiencia" type="number" required />
-                    <Input id="password" label="Contraseña Temporal" type="password" required />
+                    <Input id="full_name" label="Nombre Completo" value={newTrainer.full_name} onChange={handleInputChange} required />
+                    <Input id="email" label="Email" type="email" value={newTrainer.email} onChange={handleInputChange} required />
+                    <Input id="password" label="Contraseña Temporal" type="password" value={newTrainer.password} onChange={handleInputChange} required />
                     <div className="flex justify-end space-x-3 pt-4">
                         <Button type="button" color="secondary" onClick={handleCloseModal}>Cancelar</Button>
                         <Button type="submit" color="primary">Guardar Entrenador</Button>
