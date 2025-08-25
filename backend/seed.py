@@ -1,73 +1,100 @@
-# Importa la sesión de la base de datos
-from app.db.session import SessionLocal
-from sqlalchemy.orm import Session  # <--- ¡ESTA ES LA LÍNEA QUE FALTABA!
+import random
+from datetime import datetime, timedelta
+from sqlalchemy.orm import Session
 
-# Importa TODOS tus modelos para que SQLAlchemy los reconozca
+# Importaciones de la aplicación
+from app.db.session import SessionLocal
+from app.core.security import get_password_hash
 from app.models.user import User, UserRole
-from app.models.payment import Payment
+from app.models.payment import Payment, PaymentStatus
 from app.models.membership import Membership
 from app.models.class_schedule import ClassSchedule
 from app.models.class_booking import ClassBooking
 
-# Importa la función para hashear la contraseña
-from app.core.security import get_password_hash
-
-def create_user(db: Session, full_name: str, email: str, password: str, role: UserRole):
-    """Función auxiliar para crear un usuario si no existe."""
-    user = db.query(User).filter(User.email == email).first()
-    if not user:
-        hashed_password = get_password_hash(password)
-        new_user = User(
-            full_name=full_name,
-            email=email,
-            hashed_password=hashed_password,
-            role=role
-        )
-        db.add(new_user)
-        print(f"Usuario '{full_name}' ({role.value}) creado.")
-        return True
-    return False
-
 def seed_db():
+    """
+    Puebla la base de datos con datos de prueba realistas y conectados.
+    Es seguro ejecutar este script múltiples veces.
+    """
     db = SessionLocal()
+    print("Iniciando el proceso de sembrado (seeding)...")
 
-    # --- 1. Crear Administrador ---
-    create_user(db, "Admin Principal", "admin@gym.com", "adminpass", UserRole.admin)
+    try:
+        # --- 1. Crear Planes de Membresía ---
+        memberships = {
+            "Básico": Membership(name="Básico", price=29.99, duration_days=30, description="Acceso a máquinas y vestidores."),
+            "Premium": Membership(name="Premium", price=49.99, duration_days=30, description="Todo lo Básico + acceso a clases."),
+            "VIP": Membership(name="VIP", price=79.99, duration_days=30, description="Todo lo Premium + entrenador personal."),
+        }
+        for name, membership_obj in memberships.items():
+            if not db.query(Membership).filter(Membership.name == name).first():
+                db.add(membership_obj)
+                print(f"Membresía '{name}' creada.")
+        db.commit()
 
-    # --- 2. Crear Entrenadores ---
-    trainers_data = [
-        {"name": "Ana Fuentes", "email": "ana.trainer@gym.com"},
-        {"name": "Carlos Roca", "email": "carlos.trainer@gym.com"},
-        {"name": "Sofia Solis", "email": "sofia.trainer@gym.com"},
-        {"name": "David Ortiz", "email": "david.trainer@gym.com"},
-        {"name": "Laura Paz", "email": "laura.trainer@gym.com"},
-    ]
-    for trainer in trainers_data:
-        create_user(db, trainer["name"], trainer["email"], "trainerpass", UserRole.trainer)
+        # --- 2. Crear Usuarios (Guardando referencias) ---
+        users = {}
+        def create_user(full_name: str, email: str, password: str, role: UserRole):
+            if not db.query(User).filter(User.email == email).first():
+                new_user = User(full_name=full_name, email=email, hashed_password=get_password_hash(password), role=role)
+                db.add(new_user)
+                db.commit()
+                db.refresh(new_user)
+                users[email] = new_user
+                print(f"Usuario '{full_name}' ({role.value}) creado.")
+            else:
+                users[email] = db.query(User).filter(User.email == email).first()
 
-    # --- 3. Crear Clientes/Miembros ---
-    members_data = [
-        {"name": "Juan Pérez", "email": "juan.perez@email.com"},
-        {"name": "Maria Garcia", "email": "maria.garcia@email.com"},
-        {"name": "Pedro Rodriguez", "email": "pedro.r@email.com"},
-        {"name": "Luisa Martinez", "email": "luisa.m@email.com"},
-        {"name": "Andres Lopez", "email": "andres.l@email.com"},
-        {"name": "Carmen Hernandez", "email": "carmen.h@email.com"},
-        {"name": "Jose Gonzalez", "email": "jose.g@email.com"},
-        {"name": "Isabel Diaz", "email": "isabel.d@email.com"},
-        {"name": "Miguel Sanchez", "email": "miguel.s@email.com"},
-        {"name": "Elena Ramirez", "email": "elena.r@email.com"},
-    ]
-    for member in members_data:
-        create_user(db, member["name"], member["email"], "memberpass", UserRole.member)
+        create_user("Admin Principal", "admin@gym.com", "adminpass", UserRole.admin)
+        trainers_data = [{"name": "Ana Fuentes", "email": "ana.trainer@gym.com"}, {"name": "Carlos Roca", "email": "carlos.trainer@gym.com"}]
+        for trainer in trainers_data:
+            create_user(trainer["name"], trainer["email"], "trainerpass", UserRole.trainer)
+        
+        members_data = [{"name": "Juan Pérez", "email": "juan.perez@email.com"}, {"name": "Maria Garcia", "email": "maria.garcia@email.com"}, {"name": "Pedro Rodriguez", "email": "pedro.r@email.com"}]
+        for member in members_data:
+            create_user(member["name"], member["email"], "memberpass", UserRole.member)
 
-    # Guardar todos los cambios en la base de datos
-    db.commit()
-    db.close()
+        # --- 3. Crear Clases ---
+        ana = users.get("ana.trainer@gym.com")
+        carlos = users.get("carlos.trainer@gym.com")
+        if ana and carlos:
+            classes_data = [
+                ClassSchedule(name="Yoga Matutino", trainer_id=ana.id, date_time=datetime.now() + timedelta(days=1, hours=8), duration_minutes=60, max_capacity=15),
+                ClassSchedule(name="HIIT Intenso", trainer_id=carlos.id, date_time=datetime.now() + timedelta(days=1, hours=10), duration_minutes=45, max_capacity=20),
+            ]
+            for class_obj in classes_data:
+                if not db.query(ClassSchedule).filter(ClassSchedule.name == class_obj.name, ClassSchedule.trainer_id == class_obj.trainer_id).first():
+                    db.add(class_obj)
+                    print(f"Clase '{class_obj.name}' creada.")
+            db.commit()
+
+        # --- 4. Crear Pagos ---
+        juan = users.get("juan.perez@email.com")
+        maria = users.get("maria.garcia@email.com")
+        pedro = users.get("pedro.r@email.com")
+        
+        if juan and maria and pedro:
+            payments_data = [
+                Payment(user_id=juan.id, membership_type="Premium", amount=49.99, payment_method="Credit Card", status=PaymentStatus.completed, transaction_id=f"TXN{random.randint(1000,9999)}"),
+                Payment(user_id=maria.id, membership_type="Premium", amount=49.99, payment_method="Bank Transfer", status=PaymentStatus.pending, transaction_id=f"TXN{random.randint(1000,9999)}"),
+                Payment(user_id=pedro.id, membership_type="Básico", amount=29.99, payment_method="Credit Card", status=PaymentStatus.rejected, transaction_id=f"TXN{random.randint(1000,9999)}"),
+            ]
+            for payment_obj in payments_data:
+                if not db.query(Payment).filter(Payment.user_id == payment_obj.user_id).first():
+                    db.add(payment_obj)
+                    if payment_obj.status == PaymentStatus.completed:
+                        user_to_activate = db.query(User).filter(User.id == payment_obj.user_id).first()
+                        if user_to_activate: user_to_activate.membership_status = "active"
+                    print(f"Pago creado para el usuario ID {payment_obj.user_id}.")
+            db.commit()
+
+        print("\nProceso de sembrado finalizado con éxito.")
+
+    except Exception as e:
+        print(f"Ocurrió un error durante el sembrado: {e}")
+        db.rollback()
+    finally:
+        db.close()
 
 if __name__ == "__main__":
-    print("Iniciando el proceso de sembrado (seeding)...")
     seed_db()
-    print("Proceso de sembrado finalizado.")
-# Se recomienda ejecutar este script en un entorno de desarrollo local para asegurar
-# que la base de datos esté vacía antes de realizar el sembrado.

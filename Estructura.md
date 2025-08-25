@@ -260,6 +260,11 @@ uvicorn app.main:app --reload
 
 
 
+comnado para crear administrador,  trainer y clientes en backend:
+
+
+```python seed.py```
+
 
 
 

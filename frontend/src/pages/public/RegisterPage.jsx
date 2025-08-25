@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
-// import { registerUser } from '../../api/authApi'; // Se crearía esta función en authApi.js
+// --- CAMBIO 1: Importar la función real de la API ---
+import { registerUser } from '../../api/authApi';
 
 const RegisterPage = () => {
     const [formData, setFormData] = useState({
@@ -24,7 +25,6 @@ const RegisterPage = () => {
         e.preventDefault();
         setError('');
         
-        // Validación simple
         if (formData.password !== formData.confirmPassword) {
             setError('Las contraseñas no coinciden.');
             return;
@@ -32,16 +32,16 @@ const RegisterPage = () => {
 
         setLoading(true);
         try {
-            // Lógica para llamar a la API de registro
-            // await registerUser({ full_name: formData.fullName, email: formData.email, phone: formData.phone, password: formData.password });
+            // --- CAMBIO 2: Usar la función real en lugar de la simulación ---
+            await registerUser(formData);
             
-            // Simulación de éxito
-            console.log('Usuario registrado con éxito:', formData);
             alert('¡Registro exitoso! Ahora puedes iniciar sesión.');
             navigate('/login');
 
         } catch (err) {
-            setError('Hubo un error al registrar la cuenta. Inténtalo de nuevo.');
+            // Mostrar el error que viene del backend si está disponible
+            const errorMessage = err.response?.data?.detail || 'Hubo un error al registrar la cuenta.';
+            setError(errorMessage);
             console.error(err);
         } finally {
             setLoading(false);
