@@ -90,6 +90,37 @@ def seed_db():
 
         print("\nProceso de sembrado finalizado con éxito.")
 
+
+        # --- 5. Crear Reservas de Clases (NUEVO) ---
+        # Obtenemos las clases que ya creamos
+        yoga_class = db.query(ClassSchedule).filter(ClassSchedule.name == "Yoga Matutino").first()
+        hiit_class = db.query(ClassSchedule).filter(ClassSchedule.name == "HIIT Intenso").first()
+
+        # Obtenemos a los miembros
+        juan = users.get("juan.perez@email.com")
+        maria = users.get("maria.garcia@email.com")
+
+        if yoga_class and hiit_class and juan and maria:
+            bookings_data = [
+                # Juan se inscribe en ambas clases
+                ClassBooking(member_id=juan.id, class_id=yoga_class.id),
+                ClassBooking(member_id=juan.id, class_id=hiit_class.id),
+                # Maria solo se inscribe en Yoga
+                ClassBooking(member_id=maria.id, class_id=yoga_class.id),
+            ]
+
+            for booking in bookings_data:
+                # Verificamos si la reserva ya existe para evitar duplicados
+                exists = db.query(ClassBooking).filter_by(
+                    member_id=booking.member_id, 
+                    class_id=booking.class_id
+                ).first()
+                if not exists:
+                    db.add(booking)
+                    print(f"Reserva creada para usuario ID {booking.member_id} en clase ID {booking.class_id}.")
+            db.commit()
+
+
     except Exception as e:
         print(f"Ocurrió un error durante el sembrado: {e}")
         db.rollback()

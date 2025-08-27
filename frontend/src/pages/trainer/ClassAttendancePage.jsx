@@ -1,32 +1,39 @@
+// frontend/src/pages/trainer/ClassAttendancePage.jsx (MODIFICADO)
+
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import { getClassMembers } from '../../api/trainerApi'; // Importar la nueva función
 
 const ClassAttendancePage = () => {
-    // useParams() se usaría para obtener el ID de la clase desde la URL. ej: const { classId } = useParams();
-    const [className, setClassName] = useState('');
+    const { classId } = useParams(); // Obtiene el ID de la clase desde la URL
+    const [className, setClassName] = useState(''); // Puedes obtenerlo de la API también o pasarlo por state
     const [members, setMembers] = useState([]);
     const [presentMembers, setPresentMembers] = useState(new Set());
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
     useEffect(() => {
-        // Simulación de llamada a la API para obtener los detalles de la clase y los miembros
-        const fetchClassData = () => {
-            setLoading(true);
-            // Datos de ejemplo
-            setClassName('Yoga Matutino - 08:00 AM');
-            const mockMembers = [
-                { id: 101, name: 'Ana Martínez' },
-                { id: 102, name: 'Carlos Sanchez' },
-                { id: 103, name: 'Laura Gómez' },
-                { id: 104, name: 'Pedro Rodriguez' },
-            ];
-            setMembers(mockMembers);
-            setLoading(false);
-        };
-        fetchClassData();
-    }, []); // El array vacío asegura que se ejecute solo una vez
+        const fetchClassData = async () => {
+            if (!classId) return;
 
-    // Maneja el cambio de estado de la asistencia
+            setLoading(true);
+            try {
+                const response = await getClassMembers(classId);
+                // Aquí podrías hacer otra llamada para obtener el nombre de la clase si lo necesitas
+                // Por ahora, asumimos que lo sabemos o lo pasamos por state
+                setClassName(`Clase ID: ${classId}`); // Temporalmente
+                setMembers(response.data); // Los miembros vienen de la API
+            } catch (err) {
+                setError('No se pudieron cargar los miembros de la clase.');
+                console.error(err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchClassData();
+    }, [classId]); // Se ejecuta cada vez que el classId cambie
+
     const handleAttendanceChange = (memberId) => {
         setPresentMembers(prev => {
             const newSet = new Set(prev);
@@ -40,12 +47,13 @@ const ClassAttendancePage = () => {
     };
 
     const handleSaveAttendance = () => {
-        // En una aplicación real, aquí se enviaría la información a la API
-        console.log('Asistencia guardada:', Array.from(presentMembers));
+        // TODO: Crear endpoint en backend para guardar la asistencia
+        console.log(`Guardando asistencia para la clase ${classId}:`, Array.from(presentMembers));
         alert(`Asistencia guardada para ${presentMembers.size} de ${members.length} miembros.`);
     };
 
     if (loading) return <p>Cargando información de la clase...</p>;
+    if (error) return <p className="text-red-500">{error}</p>;
 
     return (
         <div>
@@ -54,22 +62,28 @@ const ClassAttendancePage = () => {
             
             <div className="bg-white p-6 rounded-lg shadow-md">
                 <div className="space-y-3">
-                    {members.map(member => (
-                        <label key={member.id} className="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
-                            <input
-                                type="checkbox"
-                                className="h-5 w-5 rounded text-blue-600 focus:ring-blue-500 border-gray-300"
-                                checked={presentMembers.has(member.id)}
-                                onChange={() => handleAttendanceChange(member.id)}
-                            />
-                            <span className="ml-4 text-gray-700 font-medium">{member.name}</span>
-                        </label>
-                    ))}
+                    {members.length > 0 ? (
+                        members.map(member => (
+                            <label key={member.id} className="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                                <input
+                                    type="checkbox"
+                                    className="h-5 w-5 rounded text-blue-600 focus:ring-blue-500 border-gray-300"
+                                    checked={presentMembers.has(member.id)}
+                                    onChange={() => handleAttendanceChange(member.id)}
+                                />
+                                {/* El nombre del miembro ahora es 'full_name' */}
+                                <span className="ml-4 text-gray-700 font-medium">{member.full_name}</span>
+                            </label>
+                        ))
+                    ) : (
+                        <p className="text-gray-500">No hay miembros inscritos en esta clase.</p>
+                    )}
                 </div>
                 <div className="mt-6 text-right">
                     <button
                         onClick={handleSaveAttendance}
-                        className="px-6 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700"
+                        className="px-6 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 disabled:bg-gray-400"
+                        disabled={members.length === 0}
                     >
                         Guardar Asistencia
                     </button>

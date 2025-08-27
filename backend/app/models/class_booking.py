@@ -1,3 +1,5 @@
+# backend/app/models/class_booking.py
+
 from sqlalchemy import Column, Integer, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
 from datetime import datetime

@@ -37,6 +37,7 @@ app.include_router(trainers.router, prefix="/api/v1/admin/trainers", tags=["Admi
 app.include_router(classes.router, prefix="/api/v1/admin/classes", tags=["Admin"])
 app.include_router(payments.router, prefix="/api/v1/admin/payments", tags=["Admin"])
 app.include_router(dashboard.router, prefix="/api/v1/admin/dashboard", tags=["Admin"])
+app.include_router(trainer_endpoints.router, prefix="/api/v1/trainer", tags=["Trainer"])
 
 # Nota: Aquí también deberías incluir el router de 'payments' cuando lo crees.
 
