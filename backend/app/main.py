@@ -8,7 +8,7 @@ from app.db import session, base
 from app.models import user, payment, membership, class_schedule, class_booking
 
 # Importa TODOS tus archivos de endpoints
-from app.api.v1.endpoints import auth, members, trainers, classes, trainer_endpoints, dashboard, payments
+from app.api.v1.endpoints import auth, members, trainers, classes, trainer_endpoints, dashboard, payments, member_endpoints
 
 # -----------------------------------------
 
@@ -43,6 +43,9 @@ app.include_router(trainer_endpoints.router, prefix="/api/v1/trainer", tags=["Tr
 
 # Rutas de Entrenador (Protegidas para Entrenadores)
 app.include_router(trainer_endpoints.router, prefix="/api/v1/trainer", tags=["Trainer"])
+
+app.include_router(member_endpoints.router, prefix="/api/v1/member", tags=["Member"])
+
 
 # ------------------------------------
 
