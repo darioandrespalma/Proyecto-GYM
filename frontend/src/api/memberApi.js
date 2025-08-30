@@ -1,5 +1,3 @@
-// frontend/src/api/memberApi.js (NUEVO ARCHIVO)
-
 import apiClient from './apiClient';
 
 // --- Dashboard ---
@@ -23,4 +21,9 @@ export const cancelBooking = (classId) => {
 // --- Memberships ---
 export const getMembershipPlans = () => {
     return apiClient.get('/api/v1/member/memberships');
+};
+
+// --- Actualizar información del usuario después de renovación ---
+export const refreshUserData = () => {
+    return apiClient.get('/api/v1/member/dashboard');
 };

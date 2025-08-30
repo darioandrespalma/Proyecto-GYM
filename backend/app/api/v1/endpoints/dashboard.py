@@ -1,7 +1,8 @@
+# backend/app/api/v1/endpoints/dashboard.py
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from sqlalchemy import func, extract
-# --- CORRECCIÓN CLAVE AQUÍ ---
 from datetime import datetime, timedelta
 
 from app.db.session import get_db
@@ -33,10 +34,13 @@ def get_dashboard_stats(
     # 3. Ingresos de este Mes
     current_month = datetime.utcnow().month
     current_year = datetime.utcnow().year
+    
+    # --- CORRECCIÓN AQUÍ ---
+    # Cambiamos 'Payment.date' por 'Payment.created_at' para que coincida con el modelo.
     monthly_income = db.query(func.sum(Payment.amount)).filter(
         Payment.status == PaymentStatus.completed,
-        extract('month', Payment.date) == current_month,
-        extract('year', Payment.date) == current_year
+        extract('month', Payment.created_at) == current_month,
+        extract('year', Payment.created_at) == current_year
     ).scalar() or 0.0
 
     # 4. Clases Programadas (para el futuro)
@@ -45,7 +49,9 @@ def get_dashboard_stats(
     ).count()
     
     # 5. Listas de Actividad Reciente
-    recent_payments = db.query(Payment).order_by(Payment.date.desc()).limit(5).all()
+    # --- CORRECCIÓN AQUÍ ---
+    # Usamos 'Payment.created_at' para ordenar.
+    recent_payments = db.query(Payment).order_by(Payment.created_at.desc()).limit(5).all()
     recent_members = db.query(User).filter(User.role == UserRole.member).order_by(User.registration_date.desc()).limit(5).all()
 
     return {

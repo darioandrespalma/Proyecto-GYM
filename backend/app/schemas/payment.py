@@ -1,25 +1,27 @@
 from pydantic import BaseModel
 from datetime import datetime
-from app.models.payment import PaymentStatus
+from app.models.payment import PaymentStatus, PaymentMethod
 from .user import UserInDB
 
 class PaymentBase(BaseModel):
-    user_id: int
     membership_type: str
     amount: float
-    payment_method: str
-    status: PaymentStatus
+    payment_method: PaymentMethod
 
 class PaymentCreate(PaymentBase):
-    pass
+    comprobante_url: str | None = None
 
 class PaymentUpdate(BaseModel):
     status: PaymentStatus
 
 class PaymentInDB(PaymentBase):
     id: int
-    transaction_id: str
-    date: datetime
+    user_id: int
+    status: PaymentStatus
+    transaction_id: str | None
+    comprobante_url: str | None
+    created_at: datetime
+    updated_at: datetime
     user: UserInDB
 
     class Config:

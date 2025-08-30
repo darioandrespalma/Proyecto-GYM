@@ -1,3 +1,4 @@
+// Frontend/src/store/useAuthStore.js
 import { create } from 'zustand';
 import { jwtDecode } from 'jwt-decode';
 
@@ -14,7 +15,6 @@ export const useAuthStore = create((set) => ({
   logout: () => {
     localStorage.removeItem('token');
     set({ token: null, user: null });
-    // Forzar recarga para limpiar cualquier estado restante y redirigir
     window.location.href = '/login';
   },
 }));

@@ -1,13 +1,19 @@
 from sqlalchemy import Column, Integer, String, DateTime, Enum as SQLAlchemyEnum
 from sqlalchemy.orm import relationship
-from datetime import datetime
+from datetime import datetime, timedelta
 import enum
 from app.db.base import Base
 
-class UserRole(enum.Enum):
+class UserRole(str, enum.Enum):
     admin = "admin"
     trainer = "trainer"
     member = "member"
+
+class MembershipStatus(str, enum.Enum):
+    active = "active"
+    inactive = "inactive"
+    expired = "expired"
+    pending = "pending"
 
 class User(Base):
     __tablename__ = "users"
@@ -18,7 +24,9 @@ class User(Base):
     hashed_password = Column(String, nullable=False)
     phone = Column(String, nullable=True)
     role = Column(SQLAlchemyEnum(UserRole), nullable=False, default=UserRole.member)
-    membership_status = Column(String, default="inactive") # active, inactive
+    membership_status = Column(SQLAlchemyEnum(MembershipStatus), default=MembershipStatus.inactive)
+    membership_start = Column(DateTime, nullable=True)
+    membership_end = Column(DateTime, nullable=True)
     registration_date = Column(DateTime, default=datetime.utcnow)
     
     # Relationships
