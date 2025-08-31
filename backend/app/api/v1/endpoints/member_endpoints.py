@@ -1,22 +1,99 @@
-# backend/app/api/v1/endpoints/member_endpoints.py (NUEVO ARCHIVO)
-
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Form, File, UploadFile
 from sqlalchemy.orm import Session
-from typing import List
+import os
+import uuid
+from typing import Optional, List
+from datetime import datetime
 
 from app.db.session import get_db
-from app.models.user import User, UserRole
+from app.models.user import User, UserRole, MembershipStatus
 from app.models.class_schedule import ClassSchedule
 from app.models.class_booking import ClassBooking
-from app.models.membership import Membership
 from app.api.v1.deps import get_current_user
 
-# Importa los schemas que necesitaremos
-from app.schemas.class_schedule import ClassScheduleInDB
+from app.models.membership import Membership
+
+# Importar schemas
+from app.schemas.class_schedule import AvailableClass, ClassScheduleInDB
 from app.schemas.membership import Membership as MembershipSchema
 from app.schemas.user import User as UserSchema
 
 router = APIRouter()
+
+# --- Endpoint para Clases Disponibles (NUEVO) ---
+@router.get("/available-classes", response_model=List[AvailableClass])
+def get_available_classes(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Obtiene clases disponibles para miembros con membresía activa.
+    Incluye información de cupos disponibles y si el usuario ya está inscrito.
+    """
+    if current_user.role != UserRole.member:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Solo los miembros pueden ver las clases disponibles"
+        )
+    
+    # Verificar membresía activa
+    if current_user.membership_status != MembershipStatus.active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Tu membresía no está activa. Renueva tu membresía para ver las clases."
+        )
+    
+    # Obtener clases futuras
+    now = datetime.now()
+    future_classes = db.query(ClassSchedule).filter(
+        ClassSchedule.date_time >= now
+    ).all()
+    
+    available_classes = []
+    
+    for class_schedule in future_classes:
+        # Contar reservas para esta clase
+        bookings_count = db.query(ClassBooking).filter(
+            ClassBooking.class_id == class_schedule.id
+        ).count()
+        
+        # Calcular cupos disponibles
+        available_slots = max(0, class_schedule.max_capacity - bookings_count)
+        
+        # Verificar si el usuario ya está inscrito
+        is_booked = db.query(ClassBooking).filter(
+            ClassBooking.class_id == class_schedule.id,
+            ClassBooking.member_id == current_user.id
+        ).first() is not None
+        
+        # Obtener nombre del entrenador
+        trainer_name = class_schedule.trainer.full_name if class_schedule.trainer else "Entrenador no asignado"
+        
+        # Crear objeto de respuesta
+        available_class = AvailableClass(
+            id=class_schedule.id,
+            name=class_schedule.name,
+            date_time=class_schedule.date_time,
+            duration_minutes=class_schedule.duration_minutes,
+            max_capacity=class_schedule.max_capacity,
+            available_slots=available_slots,
+            trainer_name=trainer_name,
+            is_booked=is_booked
+        )
+        
+        available_classes.append(available_class)
+    
+    return available_classes
+
+
+
+
+
+
+
+
+
+
 
 # --- Endpoint para el Dashboard del Miembro ---
 @router.get("/dashboard")

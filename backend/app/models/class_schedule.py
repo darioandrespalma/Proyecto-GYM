@@ -12,5 +12,6 @@ class ClassSchedule(Base):
     duration_minutes = Column(Integer)
     max_capacity = Column(Integer)
     
-    trainer = relationship("User")
+    # Relaciones actualizadas
+    trainer = relationship("User", back_populates="trained_classes")
     bookings = relationship("ClassBooking", back_populates="class_schedule")

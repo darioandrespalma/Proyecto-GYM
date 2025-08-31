@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, DateTime, Enum as SQLAlchemyEnum
 from sqlalchemy.orm import relationship
-from datetime import datetime, timedelta
+from datetime import datetime
 import enum
 from app.db.base import Base
 
@@ -32,3 +32,4 @@ class User(Base):
     # Relationships
     payments = relationship("Payment", back_populates="user")
     bookings = relationship("ClassBooking", back_populates="member")
+    trained_classes = relationship("ClassSchedule", back_populates="trainer")  # Añadir esta relación
