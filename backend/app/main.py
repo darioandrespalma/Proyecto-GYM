@@ -11,7 +11,7 @@ from app.models import user, payment, membership, class_schedule, class_booking
 from app.api.v1.endpoints import (
     auth, members, trainers, classes, 
     trainer_endpoints, dashboard, payments, 
-    member_endpoints, member_payments
+    member_endpoints, member_payments, assets
 )
 
 # Crear tablas
@@ -50,6 +50,8 @@ app.include_router(dashboard.router, prefix="/api/v1/admin/dashboard", tags=["Ad
 app.include_router(trainer_endpoints.router, prefix="/api/v1/trainer", tags=["Trainer"])
 app.include_router(member_endpoints.router, prefix="/api/v1/member", tags=["Member"])
 app.include_router(member_payments.router, prefix="/api/v1/member/payments", tags=["Member Payments"])
+
+app.include_router(assets.router, prefix="/assets", tags=["Assets"])
 
 @app.get("/")
 def root():

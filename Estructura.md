@@ -307,6 +307,11 @@ comnado para crear administrador,  trainer y clientes en backend:
 
 
 
+```pip install drawsvg```
+
+```npm install chart.js react-chartjs-2```
+
+
 
 
 

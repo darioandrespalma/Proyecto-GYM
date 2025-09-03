@@ -7,6 +7,9 @@ from app.db.session import SessionLocal
 from app.core.security import get_password_hash
 from app.models.user import User, UserRole
 from app.models.payment import Payment, PaymentStatus
+# --- 1. IMPORTACIÓN AÑADIDA ---
+# Importamos el Enum para usarlo directamente
+from app.models.payment import PaymentMethod
 from app.models.membership import Membership
 from app.models.class_schedule import ClassSchedule
 from app.models.class_booking import ClassBooking
@@ -20,7 +23,7 @@ def seed_db():
     print("Iniciando el proceso de sembrado (seeding)...")
 
     try:
-        # --- 1. Crear Planes de Membresía ---
+        # --- 1. Crear Planes de Membresía (sin cambios) ---
         memberships = {
             "Básico": Membership(name="Básico", price=29.99, duration_days=30, description="Acceso a máquinas y vestidores."),
             "Premium": Membership(name="Premium", price=49.99, duration_days=30, description="Todo lo Básico + acceso a clases."),
@@ -32,7 +35,7 @@ def seed_db():
                 print(f"Membresía '{name}' creada.")
         db.commit()
 
-        # --- 2. Crear Usuarios (Guardando referencias) ---
+        # --- 2. Crear Usuarios (sin cambios) ---
         users = {}
         def create_user(full_name: str, email: str, password: str, role: UserRole):
             if not db.query(User).filter(User.email == email).first():
@@ -54,7 +57,7 @@ def seed_db():
         for member in members_data:
             create_user(member["name"], member["email"], "memberpass", UserRole.member)
 
-        # --- 3. Crear Clases ---
+        # --- 3. Crear Clases (sin cambios) ---
         ana = users.get("ana.trainer@gym.com")
         carlos = users.get("carlos.trainer@gym.com")
         if ana and carlos:
@@ -68,58 +71,50 @@ def seed_db():
                     print(f"Clase '{class_obj.name}' creada.")
             db.commit()
 
-        # --- 4. Crear Pagos ---
+        # --- 4. Crear Pagos (CORREGIDO) ---
         juan = users.get("juan.perez@email.com")
         maria = users.get("maria.garcia@email.com")
         pedro = users.get("pedro.r@email.com")
         
         if juan and maria and pedro:
+            # Usamos los miembros del Enum en lugar de texto plano
             payments_data = [
-                Payment(user_id=juan.id, membership_type="Premium", amount=49.99, payment_method="Credit Card", status=PaymentStatus.completed, transaction_id=f"TXN{random.randint(1000,9999)}"),
-                Payment(user_id=maria.id, membership_type="Premium", amount=49.99, payment_method="Bank Transfer", status=PaymentStatus.pending, transaction_id=f"TXN{random.randint(1000,9999)}"),
-                Payment(user_id=pedro.id, membership_type="Básico", amount=29.99, payment_method="Credit Card", status=PaymentStatus.rejected, transaction_id=f"TXN{random.randint(1000,9999)}"),
+                Payment(user_id=juan.id, membership_type="Premium", amount=49.99, payment_method=PaymentMethod.credit_card, status=PaymentStatus.completed, transaction_id=f"TXN{random.randint(1000,9999)}"),
+                Payment(user_id=maria.id, membership_type="Premium", amount=49.99, payment_method=PaymentMethod.bank_transfer, status=PaymentStatus.pending, transaction_id=f"TXN{random.randint(1000,9999)}"),
+                Payment(user_id=pedro.id, membership_type="Básico", amount=29.99, payment_method=PaymentMethod.credit_card, status=PaymentStatus.rejected, transaction_id=f"TXN{random.randint(1000,9999)}"),
             ]
             for payment_obj in payments_data:
-                if not db.query(Payment).filter(Payment.user_id == payment_obj.user_id).first():
+                # Una verificación más robusta para evitar pagos duplicados
+                exists = db.query(Payment).filter(Payment.transaction_id == payment_obj.transaction_id).first()
+                if not exists:
                     db.add(payment_obj)
                     if payment_obj.status == PaymentStatus.completed:
                         user_to_activate = db.query(User).filter(User.id == payment_obj.user_id).first()
-                        if user_to_activate: user_to_activate.membership_status = "active"
+                        if user_to_activate: 
+                            user_to_activate.membership_status = "active"
+                            user_to_activate.membership_start = datetime.now()
+                            user_to_activate.membership_end = datetime.now() + timedelta(days=30)
                     print(f"Pago creado para el usuario ID {payment_obj.user_id}.")
             db.commit()
 
-        print("\nProceso de sembrado finalizado con éxito.")
 
-
-        # --- 5. Crear Reservas de Clases (NUEVO) ---
-        # Obtenemos las clases que ya creamos
+        # --- 5. Crear Reservas de Clases (sin cambios) ---
         yoga_class = db.query(ClassSchedule).filter(ClassSchedule.name == "Yoga Matutino").first()
         hiit_class = db.query(ClassSchedule).filter(ClassSchedule.name == "HIIT Intenso").first()
-
-        # Obtenemos a los miembros
-        juan = users.get("juan.perez@email.com")
-        maria = users.get("maria.garcia@email.com")
-
         if yoga_class and hiit_class and juan and maria:
             bookings_data = [
-                # Juan se inscribe en ambas clases
                 ClassBooking(member_id=juan.id, class_id=yoga_class.id),
                 ClassBooking(member_id=juan.id, class_id=hiit_class.id),
-                # Maria solo se inscribe en Yoga
                 ClassBooking(member_id=maria.id, class_id=yoga_class.id),
             ]
-
             for booking in bookings_data:
-                # Verificamos si la reserva ya existe para evitar duplicados
-                exists = db.query(ClassBooking).filter_by(
-                    member_id=booking.member_id, 
-                    class_id=booking.class_id
-                ).first()
+                exists = db.query(ClassBooking).filter_by(member_id=booking.member_id, class_id=booking.class_id).first()
                 if not exists:
                     db.add(booking)
                     print(f"Reserva creada para usuario ID {booking.member_id} en clase ID {booking.class_id}.")
             db.commit()
 
+        print("\nProceso de sembrado finalizado con éxito.")
 
     except Exception as e:
         print(f"Ocurrió un error durante el sembrado: {e}")

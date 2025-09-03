@@ -1,46 +1,41 @@
+// frontend/src/pages/admin/TrainersManagePage.jsx (MODIFICADO)
+
 import React, { useState, useEffect } from 'react';
 import Table from '../../components/common/Table';
 import Button from '../../components/common/Button';
 import Modal from '../../components/common/Modal';
 import Input from '../../components/common/Input';
 import Spinner from '../../components/common/Spinner';
-// --- CAMBIO 1: Importar las funciones de la API ---
 import { getTrainers, createTrainer } from '../../api/trainersApi';
 
 const TrainersManagePage = () => {
     const [trainers, setTrainers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    // Estado para manejar los datos del formulario del nuevo entrenador
     const [newTrainer, setNewTrainer] = useState({
         full_name: '',
         email: '',
         password: '',
-        role: 'trainer' // El rol se envía directamente
+        role: 'trainer'
     });
 
-    // --- CAMBIO 2: Usar useEffect para llamar a la API al cargar la página ---
     useEffect(() => {
         const fetchTrainers = async () => {
             try {
-                // Ya no usamos mockData, llamamos a la API real
                 const data = await getTrainers();
                 setTrainers(data);
             } catch (error) {
                 console.error("Error al obtener los entrenadores:", error);
-                // Aquí podrías mostrar un mensaje de error al usuario
             } finally {
                 setLoading(false);
             }
         };
-
         fetchTrainers();
-    }, []); // El array vacío asegura que se ejecute solo una vez
+    }, []);
 
     const handleOpenModal = () => setIsModalOpen(true);
     const handleCloseModal = () => {
         setIsModalOpen(false);
-        // Limpiar el formulario al cerrar
         setNewTrainer({ full_name: '', email: '', password: '', role: 'trainer' });
     };
 
@@ -48,31 +43,30 @@ const TrainersManagePage = () => {
         setNewTrainer({ ...newTrainer, [e.target.id]: e.target.value });
     };
 
-    // --- CAMBIO 3: Función para guardar el nuevo entrenador llamando a la API ---
     const handleSaveTrainer = async (e) => {
         e.preventDefault();
         try {
             const createdTrainer = await createTrainer(newTrainer);
-            // Añadir el nuevo entrenador a la lista sin tener que recargar la página
             setTrainers([...trainers, createdTrainer]);
             handleCloseModal();
         } catch (error) {
             console.error("Error al crear el entrenador:", error);
-            // Aquí podrías mostrar un error en el modal
         }
     };
 
+    // --- SECCIÓN MODIFICADA ---
     const columns = [
+        // --- LÍNEA AÑADIDA ---
+        { Header: 'ID', accessor: 'id' }, // Le decimos a la tabla que muestre la columna 'id'
         { Header: 'Nombre Completo', accessor: 'full_name' },
         { Header: 'Email', accessor: 'email' },
-        // Puedes añadir más columnas si las tienes en tu modelo, como 'specialty'
         {
             Header: 'Acciones',
-            accessor: 'id',
+            accessor: 'actions', // El accesor puede ser cualquier cosa si usas Cell
             Cell: ({ row }) => (
                 <div className="flex space-x-2">
-                    <Button color="secondary">Editar</Button>
-                    <Button color="danger">Eliminar</Button>
+                    <Button color="secondary" size="sm">Editar</Button>
+                    <Button color="danger" size="sm">Eliminar</Button>
                 </div>
             ),
         },
