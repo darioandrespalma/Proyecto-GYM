@@ -23,6 +23,7 @@ class User(Base):
     email = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
     phone = Column(String, nullable=True)
+    profile_picture_url = Column(String, nullable=True) # Para guardar la URL de la foto
     role = Column(SQLAlchemyEnum(UserRole), nullable=False, default=UserRole.member)
     membership_status = Column(SQLAlchemyEnum(MembershipStatus), default=MembershipStatus.inactive)
     membership_start = Column(DateTime, nullable=True)

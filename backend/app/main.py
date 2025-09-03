@@ -11,7 +11,7 @@ from app.models import user, payment, membership, class_schedule, class_booking
 from app.api.v1.endpoints import (
     auth, members, trainers, classes, 
     trainer_endpoints, dashboard, payments, 
-    member_endpoints, member_payments, assets
+    member_endpoints, member_payments, assets, profile
 )
 
 # Crear tablas
@@ -52,7 +52,7 @@ app.include_router(member_endpoints.router, prefix="/api/v1/member", tags=["Memb
 app.include_router(member_payments.router, prefix="/api/v1/member/payments", tags=["Member Payments"])
 
 app.include_router(assets.router, prefix="/assets", tags=["Assets"])
-
+app.include_router(profile.router, prefix="/api/v1/profile", tags=["Profile"])
 @app.get("/")
 def root():
     return {"message": "Bienvenido a la API de GymPower"}
