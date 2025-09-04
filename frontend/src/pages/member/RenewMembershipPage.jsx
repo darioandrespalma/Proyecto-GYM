@@ -6,6 +6,7 @@ import { CheckCircleIcon, StarIcon } from '@heroicons/react/24/solid';
 import { getMembershipPlans } from '../../api/memberApi';
 import { createPayment, getPaymentMethods } from '../../api/paymentsApi';
 import { useAuthStore } from '../../store/useAuthStore';
+import ElectricBorder from '../../components/common/Modal';
 
 const RenewMembershipPage = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);

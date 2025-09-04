@@ -51,7 +51,7 @@ app.include_router(trainer_endpoints.router, prefix="/api/v1/trainer", tags=["Tr
 app.include_router(member_endpoints.router, prefix="/api/v1/member", tags=["Member"])
 app.include_router(member_payments.router, prefix="/api/v1/member/payments", tags=["Member Payments"])
 
-app.include_router(assets.router, prefix="/assets", tags=["Assets"])
+app.include_router(assets.router, prefix="/api/v1/assets", tags=["Assets"])
 app.include_router(profile.router, prefix="/api/v1/profile", tags=["Profile"])
 @app.get("/")
 def root():
