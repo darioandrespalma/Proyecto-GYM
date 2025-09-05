@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { useAuthStore } from '../../store/useAuthStore';
-import { Link, NavLink } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { 
     ArrowRightOnRectangleIcon, 
     UserCircleIcon, 
@@ -10,10 +10,11 @@ import {
     CurrencyDollarIcon,
     UserIcon
 } from '@heroicons/react/24/outline';
+import GlitchText from '../common/GlitchText';
 
 // Hook personalizado para detectar clics fuera del menú desplegable
 const useClickOutside = (ref, handler) => {
-    useEffect(() => {
+    React.useEffect(() => {
         const listener = (event) => {
             if (!ref.current || ref.current.contains(event.target)) {
                 return;
@@ -29,11 +30,11 @@ const useClickOutside = (ref, handler) => {
     }, [ref, handler]);
 };
 
-
 const Navbar = () => {
     const { user, logout } = useAuthStore();
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const dropdownRef = useRef(null);
+    const navigate = useNavigate();
 
     // Cierra el menú si se hace clic fuera de él
     useClickOutside(dropdownRef, () => setIsDropdownOpen(false));
@@ -46,20 +47,23 @@ const Navbar = () => {
     ];
 
     const profilePictureUrl = user?.profile_picture_url 
-        ? `http://127.0.0.1:8000${user.profile_picture_url}`
+        ? `${process.env.REACT_APP_API_URL || 'http://127.0.0.1:8000'}${user.profile_picture_url}`
         : null;
+
+    const handleLogout = () => {
+        logout();
+        navigate('/login');
+    };
 
     return (
         <header className="bg-white shadow-md p-4 flex justify-between items-center z-20 relative">
-            {/* Sección Izquierda: Logo y Título (visible para Admin/Trainer) */}
+            {/* Sección Izquierda: Logo */}
             <div className="flex items-center space-x-4">
-                <Link to="/" className="text-2xl font-bold text-blue-600">
-                    Gym<span className="text-gray-800">Power</span>
-                </Link>
+
                 {user?.role !== 'member' && (
-                     <h1 className="text-xl font-semibold text-gray-700 hidden md:block">
+                    <h1 className="text-xl font-semibold text-gray-700 hidden md:block">
                         Bienvenido, {user?.fullName || 'Usuario'}
-                     </h1>
+                    </h1>
                 )}
             </div>
 
@@ -103,7 +107,7 @@ const Navbar = () => {
 
                 {/* Menú Desplegable */}
                 <div 
-                    className={`absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl ring-1 ring-black ring-opacity-5 origin-top-right transition-all duration-200 ease-out
+                    className={`absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl ring-1 ring-black ring-opacity-5 origin-top-right transition-all duration-200 ease-out z-50
                         ${isDropdownOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}`}
                 >
                     <div className="py-1">
@@ -118,7 +122,7 @@ const Navbar = () => {
                             </Link>
                         )}
                         <button
-                            onClick={logout}
+                            onClick={handleLogout}
                             className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-700"
                         >
                             <ArrowRightOnRectangleIcon className="h-5 w-5 mr-3" />

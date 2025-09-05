@@ -1,18 +1,20 @@
-// frontend/src/pages/member/MemberDashboardPage.jsx (MODIFICADO)
-
 import React, { useState, useEffect } from 'react';
 import { getMemberDashboard } from '../../api/memberApi';
-import { ClockIcon, UserCircleIcon } from '@heroicons/react/24/outline';
+import Card from '../../components/common/Card';
+import Spinner from '../../components/common/Spinner';
+import { ClockIcon, UserCircleIcon, UsersIcon } from '@heroicons/react/24/outline';
+import { useAuthStore } from '../../store/useAuthStore';
 
 const MemberDashboardPage = () => {
     const [dashboardData, setDashboardData] = useState(null);
     const [loading, setLoading] = useState(true);
+    const { user } = useAuthStore();
 
     useEffect(() => {
         const fetchDashboard = async () => {
             try {
                 const response = await getMemberDashboard();
-                setDashboardData(response.data);
+                setDashboardData(response);
             } catch (error) {
                 console.error("Error al cargar el dashboard:", error);
             } finally {
@@ -22,30 +24,70 @@ const MemberDashboardPage = () => {
         fetchDashboard();
     }, []);
 
-    if (loading) return <p>Cargando tu panel...</p>;
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center h-64">
+                <Spinner />
+            </div>
+        );
+    }
 
     return (
-        <div>
-            <h1 className="text-3xl font-bold text-gray-800 mb-6">Mi Panel</h1>
-            <div className="bg-white p-6 rounded-lg shadow-md">
-                <h2 className="text-xl font-semibold mb-4">Bienvenido, {dashboardData?.full_name}</h2>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-                    <div className="p-4 bg-blue-100 rounded-lg">
-                        <UserCircleIcon className="h-8 w-8 mx-auto text-blue-500 mb-2" />
-                        <p className="font-semibold">Estado de Membresía</p>
-                        <p className="capitalize text-blue-700 font-bold">{dashboardData?.membership_status}</p>
+        <div className="space-y-6">
+            <div className="flex justify-between items-center">
+                <h1 className="text-2xl font-bold text-gray-800">Mi Panel</h1>
+                <p className="text-sm text-gray-500">Bienvenido, {user?.fullName}</p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <Card className="p-6 text-center transition-all duration-300 hover:shadow-lg">
+                    <div className="bg-blue-100 p-3 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-4">
+                        <UserCircleIcon className="h-6 w-6 text-blue-600" />
                     </div>
-                    <div className="p-4 bg-green-100 rounded-lg">
-                        <ClockIcon className="h-8 w-8 mx-auto text-green-500 mb-2" />
-                        <p className="font-semibold">Días Restantes</p>
-                        <p className="text-green-700 font-bold">{dashboardData?.days_remaining}</p>
+                    <h3 className="text-lg font-semibold text-gray-800">Estado de Membresía</h3>
+                    <p className="text-2xl font-bold text-blue-600 mt-2 capitalize">{dashboardData?.membership_status}</p>
+                </Card>
+
+                <Card className="p-6 text-center transition-all duration-300 hover:shadow-lg">
+                    <div className="bg-green-100 p-3 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-4">
+                        <ClockIcon className="h-6 w-6 text-green-600" />
                     </div>
-                    <div className="p-4 bg-indigo-100 rounded-lg">
-                        <p className="text-3xl font-bold text-indigo-700">{dashboardData?.upcoming_classes_count}</p>
-                        <p className="font-semibold text-indigo-500">Clases Reservadas</p>
+                    <h3 className="text-lg font-semibold text-gray-800">Días Restantes</h3>
+                    <p className="text-2xl font-bold text-green-600 mt-2">{dashboardData?.days_remaining}</p>
+                </Card>
+
+                <Card className="p-6 text-center transition-all duration-300 hover:shadow-lg">
+                    <div className="bg-purple-100 p-3 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-4">
+                        <UsersIcon className="h-6 w-6 text-purple-600" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-800">Clases Reservadas</h3>
+                    <p className="text-2xl font-bold text-purple-600 mt-2">{dashboardData?.upcoming_classes_count}</p>
+                </Card>
+            </div>
+
+            <Card className="p-6">
+                <h2 className="text-xl font-semibold text-gray-800 mb-4">Resumen de Actividad</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-gray-50 p-4 rounded-lg">
+                        <h3 className="font-medium text-gray-700">Próxima Clase</h3>
+                        <p className="text-sm text-gray-500 mt-1">
+                            {dashboardData?.next_class 
+                                ? `${dashboardData.next_class.name} - ${new Date(dashboardData.next_class.date_time).toLocaleDateString()}`
+                                : 'No tienes clases programadas'
+                            }
+                        </p>
+                    </div>
+                    <div className="bg-gray-50 p-4 rounded-lg">
+                        <h3 className="font-medium text-gray-700">Último Pago</h3>
+                        <p className="text-sm text-gray-500 mt-1">
+                            {dashboardData?.last_payment 
+                                ? `$${dashboardData.last_payment.amount} - ${new Date(dashboardData.last_payment.date).toLocaleDateString()}`
+                                : 'Sin información de pago'
+                            }
+                        </p>
                     </div>
                 </div>
-            </div>
+            </Card>
         </div>
     );
 };

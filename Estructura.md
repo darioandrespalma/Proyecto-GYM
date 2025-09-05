@@ -92,168 +92,158 @@ Tu proyecto está organizado como un **monorepo**, una excelente práctica que s
 
 -----
 
-#### **Backend**
-
-  * **Framework:** El backend está construido en **Python**, y la estructura con `main.py`, `schemas`, `endpoints`, y `requirements.txt` sugiere fuertemente el uso de **FastAPI**. Esta es una elección moderna y de alto rendimiento para crear APIs.
-  * **Arquitectura:** Sigues una arquitectura en capas muy bien definida:
-      * `api/v1/endpoints`: Define los puntos de entrada de tu API (las rutas como `/users`, `/classes`).
-      * `services`: Contiene la lógica de negocio. Los endpoints llaman a estas funciones para realizar las operaciones.
-      * `models`: Define la estructura de tus tablas en la base de datos, probablemente usando **SQLAlchemy ORM**.
-      * `schemas`: Define las formas de los datos para la entrada y salida de la API, usando **Pydantic**. Esto asegura una validación de datos robusta.
-      * `db`: Maneja la conexión y la sesión con la base de datos.
-  * **Base de Datos:** Estás utilizando **Alembic** para gestionar las migraciones de la base de datos. Esto es fundamental para mantener el esquema de la base de datos actualizado y versionado a medida que tu aplicación evoluciona.
-
------
-
-#### **Frontend**
-
-  * **Framework:** El frontend es una aplicación de **React**, como lo indican los archivos `.jsx` y las dependencias (`react.svg`). Está construido con **Vite**, una herramienta de desarrollo moderna y muy rápida.
-  * **Arquitectura:** La estructura de carpetas es clásica y eficiente para una aplicación React:
-      * `pages`: Contiene los componentes de nivel superior para cada ruta de la aplicación, organizados por rol (`admin`, `member`, `trainer`, `public`).
-      * `components`: Almacena componentes de UI reutilizables. La subdivisión en `common` (botones, inputs) y `layout` (navbar, sidebar) es una excelente práctica.
-      * `api` / `services`: Centralizan la comunicación con el backend, haciendo que las llamadas a la API sean fáciles de gestionar y mantener.
-      * `hooks`: Los custom hooks como `useApi` y `useAuth` permiten reutilizar lógica con estado (como la autenticación) a través de diferentes componentes.
-      * `store`: Usas un gestor de estado (probablemente **Zustand**, por el nombre `useAuthStore.js`) para manejar el estado global de la aplicación, como la información del usuario autenticado.
-      * `router`: Define la navegación de la aplicación, incluyendo rutas protegidas (`ProtectedRoute.jsx`) para restringir el acceso según el rol del usuario.
-  * **Estilos:** El archivo `postcss.config.js` y la estructura general sugieren que podrías estar usando **Tailwind CSS** para los estilos, lo que permite un desarrollo de UI rápido y consistente.
-
------
-
-### **Estructura del proyecto**
 
 ```
-PROYECTO-GYM/
-├── backend/
-│   ├── alembic/
-│   │   └── env.py
-│   ├── app/
-│   │   ├── api/
-│   │   │   └── v1/
-│   │   │       ├── __pycache__/
-│   │   │       └── endpoints/
-│   │   │           ├── __pycache__/
+├── .gitignore
+├── Estructura.md
+├── README.md
+├
+├── backend
+│   ├── alembic
+│   │   ├── env.py
+│   │   └── 
+│   ├── app
+│   │   ├── __init__.py
+│   │   ├── __pycache__
+│   │   ├── api
+│   │   │   └── v1
+│   │   │       ├── __pycache__
+│   │   │       └── endpoints
+│   │   │           ├── __pycache__
+│   │   │           ├── assets.py
 │   │   │           ├── auth.py
 │   │   │           ├── classes.py
 │   │   │           ├── dashboard.py
+│   │   │           ├── member_endpoints.py
+│   │   │           ├── member_payments.py
 │   │   │           ├── members.py
 │   │   │           ├── payments.py
+│   │   │           ├── profile.py
 │   │   │           ├── trainer_endpoints.py
-│   │   │           ├── trainers.py
-│   │   │           └── users.py
-│   │   ├── core/
-│   │   │   ├── __pycache__/
+│   │   │           └── trainers.py
+│   │   ├── core
+│   │   │   ├── __pycache__
 │   │   │   ├── config.py
 │   │   │   └── security.py
-│   │   ├── db/
-│   │   │   ├── __pycache__/
+│   │   ├── db
+│   │   │   ├── __pycache__
 │   │   │   ├── base.py
 │   │   │   └── session.py
-│   │   ├── models/
-│   │   │   ├── __pycache__/
+│   │   ├── deps.py
+│   │   ├── main.py
+│   │   ├── models
+│   │   │   ├── __pycache__
 │   │   │   ├── class_booking.py
 │   │   │   ├── class_schedule.py
 │   │   │   ├── membership.py
 │   │   │   ├── payment.py
 │   │   │   └── user.py
-│   │   ├── schemas/
-│   │   │   ├── __pycache__/
+│   │   ├── schemas
+│   │   │   ├── __pycache__
+│   │   │   ├── class_booking.py
 │   │   │   ├── class_schedule.py
 │   │   │   ├── membership.py
 │   │   │   ├── payment.py
 │   │   │   ├── token.py
 │   │   │   └── user.py
-│   │   ├── services/
-│   │   │   ├── __pycache__/
+│   │   ├── services
+│   │   │   ├── __pycache__
 │   │   │   ├── class_service.py
 │   │   │   ├── payment_service.py
 │   │   │   └── user_service.py
-│   │   ├── __init__.py
-│   │   └── main.py
-│   ├── tests/
-│   ├── venv/
-│   ├── .env
-│   ├── .gitignore
-│   ├── alembic.ini
+│   │   └── utils
+│   │       ├── __init__.py
+│   │       ├── __pycache__
+│   │       ├── svg_background_generator.py
+│   │       └── svg_generator.py
 │   ├── requirements.txt
-│   └── seed.py
-│
-└── frontend/
-    ├── node_modules/
-    ├── public/
-    │   ├── logo.jpg
-    │   └── vite.svg
-    ├── src/
-    │   ├── api/
-    │   │   ├── apiClient.js
-    │   │   ├── authApi.js
-    │   │   ├── classesApi.js
-    │   │   ├── dashboardApi.js
-    │   │   ├── membersApi.js
-    │   │   ├── paymentsApi.js
-    │   │   └── trainersApi.js
-    │   ├── assets/
-    │   │   ├── styles/
-    │   │   │   └── main.scss
-    │   │   └── react.svg
-    │   ├── components/
-    │   │   ├── common/
-    │   │   │   ├── Button.jsx
-    │   │   │   ├── Card.jsx
-    │   │   │   ├── Input.jsx
-    │   │   │   ├── Modal.jsx
-    │   │   │   ├── Spinner.jsx
-    │   │   │   ├── StatusBadge.jsx
-    │   │   │   └── Table.jsx
-    │   │   └── layout/
-    │   │       ├── AdminLayout.jsx
-    │   │       ├── MemberLayout.jsx
-    │   │       ├── Navbar.jsx
-    │   │       └── Sidebar.jsx
-    │   ├── hooks/
-    │   │   ├── useApi.js
-    │   │   └── useAuth.js
-    │   ├── pages/
-    │   │   ├── admin/
-    │   │   │   ├── AdminDashboardPage.jsx
-    │   │   │   ├── ClassesManagePage.jsx
-    │   │   │   ├── MembersListPage.jsx
-    │   │   │   ├── PaymentsListPage.jsx
-    │   │   │   └── TrainersManagePage.jsx
-    │   │   ├── member/
-    │   │   │   ├── MemberDashboardPage.jsx
-    │   │   │   ├── ProfilePage.jsx
-    │   │   │   ├── RenewMembershipPage.jsx
-    │   │   │   └── SchedulePage.jsx
-    │   │   ├── public/
-    │   │   │   ├── LoginPage.jsx
-    │   │   │   ├── NotFoundPage.jsx
-    │   │   │   └── RegisterPage.jsx
-    │   │   └── trainer/
-    │   │       ├── ClassAttendancePage.jsx
-    │   │       └── TrainerDashboardPage.jsx
-    │   ├── router/
-    │   │   ├── AppRouter.jsx
-    │   │   └── ProtectedRoute.jsx
-    │   ├── services/
-    │   │   └── authService.js
-    │   ├── store/
-    │   │   └── useAuthStore.js
-    │   ├── utils/
-    │   │   ├── constants.js
-    │   │   └── dateFormatter.js
-    │   ├── App.jsx
-    │   └── main.jsx
-    ├── .env.local
-    ├── .gitignore
-    ├── eslint.config.js
-    ├── index.html
-    ├── package-lock.json
-    ├── package.json
-    ├── postcss.config.js
-    ├── README.md
-    ├── vite.config.js
-    └── Estructura.md
+│   ├── seed.py
+│   ├── tests
+│   │   ├── test_auth_api.py
+│   │   └── test_payments_api.py
+│   ├── uploads
+│   │   ├── comprobantes
+│   │   └── profile_pics
+│   └── venv
+├── frontend
+│   ├── .eslintrc.cjs
+│   ├── index.html
+│   ├── package-lock.json
+│   ├── package.json
+│   ├── postcss.config.js
+│   ├── public
+│   │   ├── logo.jpg
+│   │   └── vite.svg
+│   ├── src
+│   │   ├── App.jsx
+│   │   ├── api
+│   │   │   ├── apiClient.js
+│   │   │   ├── authApi.js
+│   │   │   ├── classesApi.js
+│   │   │   ├── dashboardApi.js
+│   │   │   ├── memberApi.js
+│   │   │   ├── membersApi.js
+│   │   │   ├── paymentsApi.js
+│   │   │   ├── profileApi.js
+│   │   │   └── trainersApi.js
+│   │   ├── assets
+│   │   │   └── react.svg
+│   │   ├── components
+│   │   │   ├── common
+│   │   │   │   ├── Button.jsx
+│   │   │   │   ├── Card.jsx
+│   │   │   │   ├── Input.jsx
+│   │   │   │   ├── Modal.jsx
+│   │   │   │   ├── Spinner.jsx
+│   │   │   │   ├── StatusBadge.jsx
+│   │   │   │   └── Table.jsx
+│   │   │   └── layout
+│   │   │       ├── AdminLayout.jsx
+│   │   │       ├── MemberLayout.jsx
+│   │   │       ├── Navbar.jsx
+│   │   │       └── Sidebar.jsx
+│   │   ├── hooks
+│   │   │   ├── useApi.js
+│   │   │   └── useAuth.js
+│   │   ├── main.jsx
+│   │   ├── pages
+│   │   │   ├── admin
+│   │   │   │   ├── AdminDashboardPage.jsx
+│   │   │   │   ├── ClassesManagePage.jsx
+│   │   │   │   ├── MembersListPage.jsx
+│   │   │   │   ├── PaymentsListPage.jsx
+│   │   │   │   └── TrainersManagePage.jsx
+│   │   │   ├── member
+│   │   │   │   ├── ClassesPage.jsx
+│   │   │   │   ├── MemberDashboardPage.jsx
+│   │   │   │   ├── ProfilePage.jsx
+│   │   │   │   ├── RenewMembershipPage.jsx
+│   │   │   │   └── SchedulePage.jsx
+│   │   │   ├── public
+│   │   │   │   ├── LoginPage.jsx
+│   │   │   │   ├── NotFoundPage.jsx
+│   │   │   │   └── RegisterPage.jsx
+│   │   │   └── trainer
+│   │   │       ├── ClassAttendancePage.jsx
+│   │   │       ├── TrainerClassesPage.jsx
+│   │   │       └── TrainerDashboardPage.jsx
+│   │   ├── router
+│   │   │   ├── AppRouter.jsx
+│   │   │   └── ProtectedRoute.jsx
+│   │   ├── services
+│   │   │   └── authService.js
+│   │   ├── store
+│   │   │   └── useAuthStore.js
+│   │   ├── styles
+│   │   │   └── main.scss
+│   │   └── utils
+│   │       ├── constants.js
+│   │       └── dateFormatter.js
+│   └── vite.config.js
+└── tailwind.config.js
 ```
+
+
 
 ---
 

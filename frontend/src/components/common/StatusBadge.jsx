@@ -2,21 +2,28 @@ import React from 'react';
 
 const StatusBadge = ({ status }) => {
   const statusStyles = {
-    active: 'bg-green-100 text-green-800',
-    completed: 'bg-green-100 text-green-800',
-    inactive: 'bg-gray-100 text-gray-800',
-    pending: 'bg-yellow-100 text-yellow-800',
-    rejected: 'bg-red-100 text-red-800',
+    active: 'bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-lg',
+    completed: 'bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-lg',
+    inactive: 'bg-gradient-to-r from-gray-500 to-gray-600 text-white',
+    pending: 'bg-gradient-to-r from-yellow-500 to-amber-600 text-white animate-pulse',
+    rejected: 'bg-gradient-to-r from-red-500 to-rose-600 text-white',
   };
 
-  // Normaliza el texto para que coincida con las claves (ej: "Completed" -> "completed")
+  const statusIcons = {
+    active: '✅',
+    completed: '✅',
+    inactive: '⏸️',
+    pending: '⏳',
+    rejected: '❌'
+  };
+
   const normalizedStatus = status ? status.toLowerCase() : 'inactive';
 
   return (
     <span
-      className={`px-3 py-1 text-xs font-medium rounded-full ${statusStyles[normalizedStatus] || statusStyles.inactive}`}
+      className={`px-3 py-1 text-xs font-medium rounded-full flex items-center gap-1 w-fit ${statusStyles[normalizedStatus] || statusStyles.inactive}`}
     >
-      {status}
+      {statusIcons[normalizedStatus] || '❓'} {status}
     </span>
   );
 };
