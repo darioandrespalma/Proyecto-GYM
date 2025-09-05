@@ -1,19 +1,27 @@
 import React, { useState, useEffect } from 'react';
-// CORRECCIÓN: Importar desde classesApi en lugar de trainerApi
-import { getTrainerDashboard, getTrainerClasses } from '../../api/classesApi';
+import { getTrainerDashboard, getTrainerClasses, getClassMembers, takeAttendance } from '../../api/classesApi';
 import Card from '../../components/common/Card';
+import Button from '../../components/common/Button';
+import Modal from '../../components/common/Modal';
 import Spinner from '../../components/common/Spinner';
 import { useAuthStore } from '../../store/useAuthStore';
 import { 
   ClockIcon, 
   UserGroupIcon, 
-  CalendarDaysIcon 
+  CalendarDaysIcon,
+  UserIcon
 } from '@heroicons/react/24/outline';
 
 const TrainerDashboardPage = () => {
   const [dashboardData, setDashboardData] = useState(null);
   const [classes, setClasses] = useState([]);
+  const [classMembers, setClassMembers] = useState([]);
+  const [selectedClass, setSelectedClass] = useState(null);
+  const [attendanceModalOpen, setAttendanceModalOpen] = useState(false);
+  const [viewMembersModalOpen, setViewMembersModalOpen] = useState(false);
+  const [selectedMembers, setSelectedMembers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [membersLoading, setMembersLoading] = useState(false);
   const [error, setError] = useState('');
   const { user } = useAuthStore();
 
@@ -41,6 +49,40 @@ const TrainerDashboardPage = () => {
 
     fetchData();
   }, []);
+
+  const loadClassMembers = async (classId) => {
+    try {
+      setMembersLoading(true);
+      const data = await getClassMembers(classId);
+      setClassMembers(data);
+      setSelectedClass(classId);
+    } catch (error) {
+      console.error('Error loading class members:', error);
+      setError('Error al cargar los miembros de la clase.');
+    } finally {
+      setMembersLoading(false);
+    }
+  };
+
+  const handleAttendance = async () => {
+    try {
+      await takeAttendance(selectedClass, selectedMembers);
+      setAttendanceModalOpen(false);
+      setSelectedMembers([]);
+      alert('Asistencia registrada correctamente');
+    } catch (error) {
+      console.error('Error taking attendance:', error);
+      alert('Error al registrar la asistencia');
+    }
+  };
+
+  const toggleMemberSelection = (memberId) => {
+    setSelectedMembers(prev => 
+      prev.includes(memberId)
+        ? prev.filter(id => id !== memberId)
+        : [...prev, memberId]
+    );
+  };
 
   if (loading) {
     return (
@@ -103,6 +145,7 @@ const TrainerDashboardPage = () => {
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha y Hora</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Duración</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Capacidad</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
@@ -115,6 +158,30 @@ const TrainerDashboardPage = () => {
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{classItem.duration_minutes} min</td>
                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{classItem.max_capacity} personas</td>
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <div className="flex space-x-2">
+                        <Button 
+                          color="primary" 
+                          size="sm"
+                          onClick={() => {
+                            loadClassMembers(classItem.id);
+                            setViewMembersModalOpen(true);
+                          }}
+                        >
+                          Ver Inscritos
+                        </Button>
+                        <Button 
+                          color="secondary" 
+                          size="sm"
+                          onClick={() => {
+                            loadClassMembers(classItem.id);
+                            setAttendanceModalOpen(true);
+                          }}
+                        >
+                          Tomar Asistencia
+                        </Button>
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -124,6 +191,92 @@ const TrainerDashboardPage = () => {
           <p className="text-gray-500 text-center py-8">No tienes clases programadas.</p>
         )}
       </Card>
+
+      {/* Modal para ver miembros inscritos */}
+      <Modal 
+        isOpen={viewMembersModalOpen} 
+        onClose={() => setViewMembersModalOpen(false)}
+        title="Alumnos Inscritos"
+      >
+        {membersLoading ? (
+          <div className="flex justify-center items-center py-8">
+            <Spinner />
+          </div>
+        ) : (
+          <div>
+            {classMembers.length === 0 ? (
+              <p className="text-gray-500 text-center py-4">No hay alumnos inscritos en esta clase.</p>
+            ) : (
+              <ul className="divide-y divide-gray-200 max-h-60 overflow-y-auto">
+                {classMembers.map((member) => (
+                  <li key={member.id} className="py-3 flex items-center">
+                    <UserIcon className="h-5 w-5 text-gray-400 mr-3" />
+                    <div>
+                      <p className="text-gray-800 font-medium">{member.full_name}</p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
+      </Modal>
+
+      {/* Modal para tomar asistencia */}
+      <Modal 
+        isOpen={attendanceModalOpen} 
+        onClose={() => {
+          setAttendanceModalOpen(false);
+          setSelectedMembers([]);
+        }}
+        title="Tomar Asistencia"
+      >
+        {membersLoading ? (
+          <div className="flex justify-center items-center py-8">
+            <Spinner />
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <p className="text-gray-700">Selecciona los miembros que asistieron a la clase:</p>
+            
+            <div className="max-h-60 overflow-y-auto">
+              {classMembers.map((member) => (
+                <div key={member.id} className="flex items-center p-2 hover:bg-gray-50 rounded">
+                  <input
+                    type="checkbox"
+                    id={`member-${member.id}`}
+                    checked={selectedMembers.includes(member.id)}
+                    onChange={() => toggleMemberSelection(member.id)}
+                    className="h-4 w-4 text-blue-600 rounded focus:ring-blue-500 border-gray-300"
+                  />
+                  <label htmlFor={`member-${member.id}`} className="ml-2 block text-sm text-gray-700">
+                    {member.full_name}
+                  </label>
+                </div>
+              ))}
+            </div>
+            
+            <div className="flex justify-end space-x-3 pt-4">
+              <Button 
+                color="secondary" 
+                onClick={() => {
+                  setAttendanceModalOpen(false);
+                  setSelectedMembers([]);
+                }}
+              >
+                Cancelar
+              </Button>
+              <Button 
+                color="primary" 
+                onClick={handleAttendance}
+                disabled={selectedMembers.length === 0}
+              >
+                Registrar Asistencia
+              </Button>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 };

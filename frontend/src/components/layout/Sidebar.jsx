@@ -29,7 +29,6 @@ const Sidebar = () => {
   const trainerLinks = [
     { to: "/trainer/dashboard", icon: <ChartBarIcon className="h-5 w-5 mr-3" />, text: "Dashboard" },
     { to: "/trainer/classes", icon: <ClipboardDocumentListIcon className="h-5 w-5 mr-3" />, text: "Mis Clases" },
-    { to: "/trainer/attendance", icon: <UserGroupIcon className="h-5 w-5 mr-3" />, text: "Asistencia" },
   ];
 
   // Enlaces para el rol de Miembro
